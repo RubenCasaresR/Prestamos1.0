@@ -1,0 +1,19 @@
+RewriteEngine On
+
+# P0: bloquear sensibles + artefactos fuera de docroot ideal
+<FilesMatch "^(\.env|.*\.sql|.*\.xlsx|.*\.DESHABILITADO|.*\.log)$">
+    Require all denied
+</FilesMatch>
+RedirectMatch 403 ^/(tests|database|produccion|\.git|\.opencode)(/|$)
+RedirectMatch 403 ^/preview-dashboard\.php$
+Options -Indexes
+Header always set X-Frame-Options "SAMEORIGIN"
+Header always set X-Content-Type-Options "nosniff"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+# No reescribir archivos del directorio auth
+RewriteCond %{REQUEST_URI} !/auth/
+# Si el archivo solicitado no existe, enviar a index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]

@@ -1,0 +1,25 @@
+<?php
+require_once __DIR__ . '/../config/database.php';
+
+$pdo = getConnection();
+
+$pdo->exec("CREATE TABLE IF NOT EXISTS usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    nombre VARCHAR(100) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    estado ENUM('activo','inactivo') DEFAULT 'activo',
+    fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB");
+
+$stmt = $pdo->prepare("SELECT id FROM usuarios WHERE username = ?");
+$stmt->execute(['admin']);
+if (!$stmt->fetch()) {
+    $hash = password_hash('admin123', PASSWORD_DEFAULT);
+    $pdo->prepare("INSERT INTO usuarios (username, nombre, password_hash) VALUES (?, ?, ?)")
+        ->execute(['admin', 'Administrador', $hash]);
+    echo "Usuario admin creado (usuario: admin, contraseña: admin123). Por seguridad, ELIMINE este archivo auth/instalar.php ahora.\n";
+} else {
+    http_response_code(403);
+    die("Instalador deshabilitado: el usuario admin ya existe. Elimine el archivo auth/instalar.php para mayor seguridad.\n");
+}
